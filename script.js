@@ -1,4 +1,5 @@
-const API_URL = "https://691728f6a7a34288a27fc066.mockapi.io/v1/student";
+// ✅ 네 MockAPI 리소스 URL
+const API_URL = "https://691728f6a7a34288a27fc066.mockapi.io/v1/students";
 
 const tbody = document.getElementById("data-table-body");
 const messageArea = document.getElementById("message-area");
@@ -9,12 +10,11 @@ const dataModal = new bootstrap.Modal(dataModalEl);
 const modeText = document.querySelector("#dataModalLabel .mode-text");
 
 const form = document.getElementById("data-form");
-const formId = document.getElementById("form-id"); // MockAPI가 주는 id
-const formName = document.getElementById("form-name"); // Name
-const formAge = document.getElementById("form-age"); // Age
-const formMajor = document.getElementById("form-major"); // Major
-const formEmail = document.getElementById("form-email"); // E-Mail
+const formId = document.getElementById("form-id"); // MockAPI id
 const formNumber = document.getElementById("form-number"); // Number
+const formName = document.getElementById("form-name"); // Name
+const formMajor = document.getElementById("form-major"); // Major
+const formSemester = document.getElementById("form-semester"); // semester
 
 const btnOpenAdd = document.getElementById("btn-open-add");
 
@@ -30,23 +30,19 @@ function showMessage(text, type = "success") {
     </div>`;
 }
 
+// 테이블 렌더링
 function renderTable(data) {
   tbody.innerHTML = "";
   if (!Array.isArray(data)) return;
 
-  data.forEach((item, index) => {
+  data.forEach((item) => {
     const tr = document.createElement("tr");
 
-    // 서버에서 내려온 id가 없으면 Number를 대신 사용
-    const serverId = item.id ?? item.Number;
-    const displayNumber = item.Number || index + 1; // 화면에 보여줄 번호
-
     tr.innerHTML = `
-      <td>${displayNumber}</td>
+      <td>${item.Number}</td>
       <td>${item.Name}</td>
-      <td>${item.Age}</td>
       <td>${item.Major}</td>
-      <td>${item["E-Mail"]}</td>
+      <td>${item.semester}</td>
       <td class="table-actions">
         <button class="btn btn-sm btn-warning btn-edit">수정</button>
         <button class="btn btn-sm btn-danger btn-delete">삭제</button>
@@ -55,14 +51,13 @@ function renderTable(data) {
 
     // 수정 버튼
     tr.querySelector(".btn-edit").addEventListener("click", () => {
-      // serverId도 넘겨주자
-      openEditModal({ ...item, _serverId: serverId });
+      openEditModal(item);
     });
 
     // 삭제 버튼
     tr.querySelector(".btn-delete").addEventListener("click", () => {
-      if (confirm(`정말 삭제하시겠습니까? (번호: ${displayNumber})`)) {
-        deleteData(serverId);
+      if (confirm(`정말 삭제하시겠습니까? (번호: ${item.Number})`)) {
+        deleteData(item.id); // 🔑 MockAPI id 사용
       }
     });
 
@@ -70,16 +65,13 @@ function renderTable(data) {
   });
 }
 
-// 데이터 목록 가져오기 (READ)
+// READ (목록 불러오기)
 async function fetchData() {
   try {
     const res = await fetch(API_URL);
-    if (!res.ok) {
-      console.error("fetchData res:", res.status);
-      throw new Error("데이터 불러오기 실패");
-    }
+    if (!res.ok) throw new Error("데이터 불러오기 실패");
     const data = await res.json();
-    console.log("fetchData data[0] =", data[0]); // id 존재 여부 확인용
+    console.log("fetchData 예시:", data[0]);
     renderTable(data);
   } catch (err) {
     console.error(err);
@@ -87,23 +79,16 @@ async function fetchData() {
   }
 }
 
-// CREATE (POST)
+// CREATE (추가)
 async function createData(payload) {
   try {
-    console.log("createData payload =", payload);
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("createData error:", res.status, errorText);
-      throw new Error("데이터 추가 실패");
-    }
+    if (!res.ok) throw new Error("데이터 추가 실패");
     showMessage("데이터가 성공적으로 추가되었습니다.");
     dataModal.hide();
     form.reset();
@@ -114,23 +99,21 @@ async function createData(payload) {
   }
 }
 
-// UPDATE (PUT)
+// UPDATE (수정)
 async function updateData(id, payload) {
   const url = `${API_URL}/${id}`;
-  console.log("updateData id/payload/url =", id, payload, url);
+  console.log("updateData:", id, payload, url);
 
   try {
     const res = await fetch(url, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error("updateData error:", res.status, errorText);
+      const t = await res.text();
+      console.error("updateData error:", res.status, t);
       throw new Error("데이터 수정 실패");
     }
 
@@ -144,21 +127,20 @@ async function updateData(id, payload) {
   }
 }
 
-// DELETE
+// DELETE (삭제)
 async function deleteData(id) {
   const url = `${API_URL}/${id}`;
-  console.log("deleteData id/url =", id, url);
+  console.log("deleteData:", id, url);
 
   try {
-    const res = await fetch(url, {
-      method: "DELETE",
-    });
+    const res = await fetch(url, { method: "DELETE" });
 
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error("deleteData error:", res.status, errorText);
+      const t = await res.text();
+      console.error("deleteData error:", res.status, t);
       throw new Error("데이터 삭제 실패");
     }
+
     showMessage("데이터가 성공적으로 삭제되었습니다.");
     fetchData();
   } catch (err) {
@@ -181,42 +163,39 @@ function openEditModal(item) {
   currentMode = "edit";
   modeText.textContent = "데이터 수정";
 
-  // serverId = item.id(있으면) 또는 item.Number(없으면)
-  const serverId = item._serverId ?? item.id ?? item.Number;
+  // MockAPI에서 내려온 id 그대로 저장
+  formId.value = item.id;
 
-  formId.value = serverId; // 🔴 이걸로 수정/삭제 요청 보냄
-  formName.value = item.Name || "";
-  formAge.value = item.Age || "";
-  formMajor.value = item.Major || "";
-  formEmail.value = item["E-Mail"] || "";
-  formNumber.value = item.Number || "";
+  formNumber.value = item.Number ?? "";
+  formName.value = item.Name ?? "";
+  formMajor.value = item.Major ?? "";
+  formSemester.value = item.semester ?? "";
 
-  console.log("openEditModal item =", item, "serverId =", serverId);
+  console.log("openEditModal:", item);
   dataModal.show();
 }
 
-// 폼 submit 이벤트
+// 폼 submit
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
   const payload = {
+    Number: Number(formNumber.value),
     Name: formName.value.trim(),
-    Age: Number(formAge.value),
     Major: formMajor.value.trim(),
-    "E-Mail": formEmail.value.trim(),
-    Number: formNumber.value.trim(),
+    semester: Number(formSemester.value),
   };
 
   if (currentMode === "create") {
     createData(payload);
   } else if (currentMode === "edit") {
-    const id = formId.value; // 🔴 여기!
+    const id = formId.value;
     updateData(id, payload);
   }
 });
 
-// "새 데이터 추가" 버튼 클릭 시
+// "새 데이터 추가" 버튼
 btnOpenAdd.addEventListener("click", openAddModal);
 
-// 페이지 로딩 시 데이터 최초 1회 불러오기
+// 페이지 로드 시 데이터 불러오기
 window.addEventListener("DOMContentLoaded", fetchData);

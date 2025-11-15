@@ -14,6 +14,13 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">AJAX CRUD Demo</a>
+      </div>
+    </nav>
+
     <!-- MAIN CONTAINER -->
     <div class="container mt-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -39,12 +46,10 @@
             <table class="table table-striped table-hover align-middle">
               <thead class="table-dark">
                 <tr>
-                  <!-- 여기 ID 대신 Number를 보여주는 칸 -->
                   <th>번호 (Number)</th>
                   <th>이름 (Name)</th>
-                  <th>나이 (Age)</th>
                   <th>전공 (Major)</th>
-                  <th>이메일 (E-Mail)</th>
+                  <th>학기 (semester)</th>
                   <th>작업</th>
                 </tr>
               </thead>
@@ -84,22 +89,23 @@
               <input type="hidden" id="form-id" />
 
               <div class="mb-3">
-                <label for="form-name" class="form-label">이름 (Name)</label>
+                <label for="form-number" class="form-label"
+                  >번호 (Number)</label
+                >
                 <input
-                  type="text"
+                  type="number"
                   class="form-control"
-                  id="form-name"
+                  id="form-number"
                   required
                 />
               </div>
 
               <div class="mb-3">
-                <label for="form-age" class="form-label">나이 (Age)</label>
+                <label for="form-name" class="form-label">이름 (Name)</label>
                 <input
-                  type="number"
+                  type="text"
                   class="form-control"
-                  id="form-age"
-                  min="0"
+                  id="form-name"
                   required
                 />
               </div>
@@ -115,25 +121,13 @@
               </div>
 
               <div class="mb-3">
-                <label for="form-email" class="form-label"
-                  >이메일 (E-Mail)</label
+                <label for="form-semester" class="form-label"
+                  >학기 (semester)</label
                 >
                 <input
-                  type="email"
+                  type="number"
                   class="form-control"
-                  id="form-email"
-                  required
-                />
-              </div>
-
-              <div class="mb-3">
-                <label for="form-number" class="form-label"
-                  >번호 (Number)</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="form-number"
+                  id="form-semester"
                   required
                 />
               </div>

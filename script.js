@@ -30,7 +30,6 @@ function showMessage(text, type = "success") {
     </div>`;
 }
 
-// 테이블 렌더링
 function renderTable(data) {
   tbody.innerHTML = "";
   if (!Array.isArray(data)) return;
@@ -38,9 +37,9 @@ function renderTable(data) {
   data.forEach((item, index) => {
     const tr = document.createElement("tr");
 
-    // item.id : MockAPI가 자동으로 만든 PK
-    // item.Number : 네 JSON에 있는 번호 필드
-    const displayNumber = item.Number || index + 1;
+    // 서버에서 내려온 id가 없으면 Number를 대신 사용
+    const serverId = item.id ?? item.Number;
+    const displayNumber = item.Number || index + 1; // 화면에 보여줄 번호
 
     tr.innerHTML = `
       <td>${displayNumber}</td>
@@ -54,15 +53,16 @@ function renderTable(data) {
       </td>
     `;
 
-    // 수정 버튼 이벤트
+    // 수정 버튼
     tr.querySelector(".btn-edit").addEventListener("click", () => {
-      openEditModal(item);
+      // serverId도 넘겨주자
+      openEditModal({ ...item, _serverId: serverId });
     });
 
-    // 삭제 버튼 이벤트
+    // 삭제 버튼
     tr.querySelector(".btn-delete").addEventListener("click", () => {
       if (confirm(`정말 삭제하시겠습니까? (번호: ${displayNumber})`)) {
-        deleteData(item.id);
+        deleteData(serverId);
       }
     });
 
@@ -181,16 +181,17 @@ function openEditModal(item) {
   currentMode = "edit";
   modeText.textContent = "데이터 수정";
 
-  // 🔴 여기서 반드시 item.id 를 숨겨진 input에 저장해야 함
-  formId.value = item.id; // 이 id로 PUT / DELETE 요청
+  // serverId = item.id(있으면) 또는 item.Number(없으면)
+  const serverId = item._serverId ?? item.id ?? item.Number;
 
+  formId.value = serverId; // 🔴 이걸로 수정/삭제 요청 보냄
   formName.value = item.Name || "";
   formAge.value = item.Age || "";
   formMajor.value = item.Major || "";
   formEmail.value = item["E-Mail"] || "";
   formNumber.value = item.Number || "";
 
-  console.log("openEditModal item =", item);
+  console.log("openEditModal item =", item, "serverId =", serverId);
   dataModal.show();
 }
 
@@ -202,14 +203,14 @@ form.addEventListener("submit", (e) => {
     Name: formName.value.trim(),
     Age: Number(formAge.value),
     Major: formMajor.value.trim(),
-    "E-Mail": formEmail.value.trim(), // 키에 하이픈 있어서 따옴표 필요
+    "E-Mail": formEmail.value.trim(),
     Number: formNumber.value.trim(),
   };
 
   if (currentMode === "create") {
     createData(payload);
   } else if (currentMode === "edit") {
-    const id = formId.value;
+    const id = formId.value; // 🔴 여기!
     updateData(id, payload);
   }
 });

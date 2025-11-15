@@ -1,0 +1,16 @@
+body {
+  padding-top: 60px;
+  background-color: white;
+}
+
+.navbar-brand {
+  font-weight: 700;
+}
+
+.table-actions button {
+  margin-right: 4px;
+}
+
+.modal-title span.mode-text {
+  font-weight: 700;
+}
